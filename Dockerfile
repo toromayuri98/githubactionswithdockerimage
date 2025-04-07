@@ -1,6 +1,6 @@
 From python:3.10-alpine3.18
 
-COPY ..
+COPY . /app
 
 RUN pip install -r requirements.txt
 
