@@ -1,35 +1,33 @@
-name : "ECR Deployment"
+name: "ECR Deployment"
 
-on: push
+on: 
+  push:
 
 jobs:
   ECR_Deployment:
-    name: Build a docker image push to ECR
-    run-on: ubuntu-latest
+    name: Build and push Docker image to ECR
+    runs-on: ubuntu-latest
 
     steps:
-      - name: checkout
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Setup AWS ECR details
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "eu-north-1"
+          aws-region: eu-north-1
 
       - name: Login to Amazon ECR
-        id: login-pf-aws-ecr
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-        
-      - name: Build and push the tagged docker image to Amazon ECR
-        id : containerImage
-        env:
-          ECR_REGISTRY: ${{ steps.login-pf-aws-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{secrets.AWS_ECR_REPO}}
-          IMAGE_TAG: latest
-          run: |
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPO }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
